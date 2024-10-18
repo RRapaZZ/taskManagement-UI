@@ -1,11 +1,82 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
+import moment from 'moment';
+import axios from 'axios';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+// Configurar moment.js para el calendario
+const localizer = momentLocalizer(moment);
 
 function Home() {
+    const [events, setEvents] = useState([]);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token'); // Obtener el token de autenticación
+
+        if (token) {
+            // Obtener las tareas y convertirlas en eventos para el calendario
+            axios.get('http://127.0.0.1:8000/api/tasks/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Asegúrate de enviar el token
+                },
+            })
+            .then(response => {
+                const tasks = response.data;
+                const formattedTasks = tasks.map(task => ({
+                    title: task.title,
+                    start: new Date(task.datetime), // Ajustar la fecha de inicio
+                    end: task.datecompleted ? new Date(task.datecompleted) : new Date(task.datetime), // Ajustar fecha de finalización o misma fecha si no está completada
+                    allDay: false, // Mostrar como evento con horas específicas
+                    task,
+                }));
+                setEvents(formattedTasks);
+            })
+            .catch(error => {
+                console.error('Error fetching tasks:', error);
+            });
+        } else {
+            console.error('No token found, user is not authenticated');
+        }
+    }, []);
+
+    // Función para cambiar el estilo de los eventos
+    const eventStyleGetter = (event) => {
+        let backgroundColor = '#3174ad'; // Color por defecto
+        if (event.task.important) {
+            backgroundColor = 'yellow'; // Tareas importantes en amarillo
+        }
+        if (event.task.datecompleted) {
+            backgroundColor = 'red'; // Tareas completadas en rojo
+        }
+        return {
+            style: {
+                backgroundColor,
+                color: 'black', // Color del texto en el evento
+                borderRadius: '5px',
+                opacity: 0.8,
+                border: '0px',
+                display: 'block'
+            }
+        };
+    };
+
     return (
-        <div className="flex justify-center items-center h-screen bg-gray-100">
-            <div className="text-center">
-                <h1 className="text-4xl font-bold mb-4">Welcome to the Task Manager</h1>
-                <p className="text-gray-700">Manage your tasks effectively and efficiently.</p>
+        <div className="p-8">
+            <h1 className="text-3xl font-bold text-center mb-6">Task Calendar</h1>
+            <div className="bg-white shadow-md p-6 rounded-lg">
+                <Calendar
+                    localizer={localizer}
+                    events={events}
+                    startAccessor="start"
+                    endAccessor="end"
+                    style={{ height: 800, width: '90%', margin: '0 auto' }}  // Aumentamos la altura y anchura
+                    defaultView="month"
+                    views={['month', 'week', 'day']}
+                    popup={true}
+                    selectable={true}
+                    eventPropGetter={eventStyleGetter} // Aplicamos el estilo personalizado
+                    onSelectEvent={event => alert(`Task: ${event.title}\nDescription: ${event.task.description}`)} // Mostrar detalles al hacer clic en el evento
+                />
             </div>
         </div>
     );

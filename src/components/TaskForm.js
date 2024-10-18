@@ -3,7 +3,13 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function TaskForm() {
-    const [formData, setFormData] = useState({ title: '', description: '', important: false });
+    const [formData, setFormData] = useState({
+        title: '', 
+        description: '', 
+        important: false,
+        date: '',  // Nuevo campo de fecha
+        time: ''   // Nuevo campo de hora
+    });
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -18,9 +24,13 @@ function TaskForm() {
     const handleSubmit = (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token');
-        console.log(formData);  // Verifica que el formData tenga todos los datos correctos
-    
-        axios.post('http://127.0.0.1:8000/api/create_task/', formData, {
+        
+        const taskData = {
+            ...formData,
+            datetime: `${formData.date}T${formData.time}`  // Combinamos fecha y hora
+        };
+
+        axios.post('http://127.0.0.1:8000/api/create_task/', taskData, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
@@ -65,6 +75,26 @@ function TaskForm() {
                             name="important" 
                             onChange={handleCheckboxChange} 
                             className="mt-1"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-gray-700">Date</label>
+                        <input 
+                            type="date" 
+                            name="date" 
+                            onChange={handleChange} 
+                            required 
+                            className="w-full px-4 py-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-gray-700">Time</label>
+                        <input 
+                            type="time" 
+                            name="time" 
+                            onChange={handleChange} 
+                            required 
+                            className="w-full px-4 py-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                         />
                     </div>
                     <button 

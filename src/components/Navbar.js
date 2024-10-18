@@ -7,11 +7,14 @@ function Navbar({ isAuthenticated, handleLogout }) {
             <div className="container mx-auto flex justify-between items-center">
                 <div>
                     <Link to="/" className="text-white text-xl font-bold hover:underline">
-                        Task Manager LEINAD BALDIVIEZO ARO
+                        Task Manager
                     </Link>
                 </div>
                 <ul className="flex space-x-4">
-                    <li><Link to="/" className="text-white hover:underline">Home</Link></li>
+                    {/* Mostrar "Home" solo si está autenticado */}
+                    {isAuthenticated && (
+                        <li><Link to="/home" className="text-white hover:underline">Calendar</Link></li>
+                    )}
                     {isAuthenticated ? (
                         <>
                             <li><Link to="/tasks" className="text-white hover:underline">Tasks</Link></li>
@@ -24,7 +27,7 @@ function Navbar({ isAuthenticated, handleLogout }) {
                     ) : (
                         <>
                             <li><Link to="/signin" className="text-white hover:underline">Signin</Link></li>
-                            <li><Link to="/signup" className="text-white hover:underline">Register</Link></li>  {/* Cambiado a Register */}
+                            <li><Link to="/signup" className="text-white hover:underline">Register</Link></li> {/* Cambiado a Register */}
                         </>
                     )}
                 </ul>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Home from './components/Home';
 import Signup from './components/Signup';
 import Signin from './components/Signin';
@@ -9,29 +9,32 @@ import TaskDetail from './components/TaskDetail';
 import Navbar from './components/Navbar';
 
 function App() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('authToken'));
 
     // Funciones de inicio y cierre de sesión
     const handleLogin = () => {
         setIsAuthenticated(true);
-        // Aquí podrías guardar un token de autenticación en el localStorage o en un contexto global
+        // Guardar token en localStorage o contexto global
     };
 
     const handleLogout = () => {
         setIsAuthenticated(false);
-        // Aquí puedes borrar el token de autenticación si usas uno
-        localStorage.removeItem('authToken'); // Ejemplo de cómo eliminar un token
+        // Eliminar el token de autenticación
+        localStorage.removeItem('authToken');
     };
 
     return (
         <Router>
             <Navbar isAuthenticated={isAuthenticated} handleLogout={handleLogout} />
             <Routes>
-                <Route path="/" element={<Home />} />
+                {/* Redirigir a Signin como página predeterminada */}
+                <Route path="/" element={isAuthenticated ? <Navigate to="/home" /> : <Signin onLogin={handleLogin} />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/signin" element={<Signin onLogin={handleLogin} />} />
+                
                 {isAuthenticated ? (
                     <>
+                        <Route path="/home" element={<Home />} />
                         <Route path="/tasks" element={<TaskList />} />
                         <Route path="/tasks/create" element={<TaskForm />} />
                         <Route path="/tasks/:id" element={<TaskDetail />} />

@@ -7,6 +7,8 @@ function TaskDetail() {
         title: '',
         description: '',
         important: false,
+        date: '',
+        time: ''
     });
     const navigate = useNavigate();
     const { id } = useParams();
@@ -19,12 +21,22 @@ function TaskDetail() {
             }
         })
         .then(response => {
-            setTask(response.data);
+            const taskData = response.data;
+            console.log('Task data received:', taskData);  // <-- Asegúrate de que la fecha y hora estén presentes
+            let date = '';
+            let time = '';
+    
+            if (taskData.datetime) {
+                [date, time] = taskData.datetime.split('T');
+                time = time ? time.slice(0, 5) : '';  // Extrae solo HH:MM
+            }
+    
+            setTask({ ...taskData, date, time });
         })
         .catch(error => {
             console.error('There was an error fetching the task!', error);
         });
-    }, [id]);
+    }, [id]);    
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -36,7 +48,12 @@ function TaskDetail() {
 
     const handleUpdate = () => {
         const token = localStorage.getItem('token');
-        axios.put(`http://127.0.0.1:8000/api/tasks/${id}/`, task, {
+        const taskData = {
+            ...task,
+            datetime: `${task.date}T${task.time}:00` // Combinamos la fecha y la hora
+        };
+
+        axios.put(`http://127.0.0.1:8000/api/tasks/${id}/`, taskData, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -82,8 +99,6 @@ function TaskDetail() {
         });
     };
 
-    if (!task) return <div>Loading...</div>;
-
     return (
         <div className="max-w-lg mx-auto mt-10">
             <h2 className="text-2xl font-bold mb-4">Edit Task</h2>
@@ -114,6 +129,26 @@ function TaskDetail() {
                     checked={task.important} 
                     onChange={handleChange} 
                     className="mt-1"
+                />
+            </div>
+            <div>
+                <label className="block text-gray-700">Date</label>
+                <input 
+                    type="date" 
+                    name="date" 
+                    value={task.date} 
+                    onChange={handleChange} 
+                    className="w-full px-4 py-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+            </div>
+            <div>
+                <label className="block text-gray-700">Time</label>
+                <input 
+                    type="time" 
+                    name="time" 
+                    value={task.time} 
+                    onChange={handleChange} 
+                    className="w-full px-4 py-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
             </div>
             <div className="space-x-4 mt-4">
